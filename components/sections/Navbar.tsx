@@ -69,12 +69,12 @@ const navItems: NavItem[] = [
   {
     icon: Warehouse,
     label: "Warehouse",
-    href: "/warehouse",
+    href: "/portal/warehouse",
     subItems: [
-      { label: "Incoming Stocks", href: "/warehouse/incoming" },
-      { label: "Outgoing Stocks", href: "/warehouse/outgoing" },
-      { label: "Transfers", href: "/warehouse/transfers" },
-      { label: "Warehouse Reports", href: "/warehouse/reports" },
+      { label: "Incoming Stocks", href: "/portal/warehouse/incoming" },
+      { label: "Outgoing Stocks", href: "/portal/warehouse/outgoing" },
+      { label: "Transfers", href: "/portal/warehouse/transfers" },
+      { label: "Warehouse Reports", href: "/portal/warehouse/reports" },
     ],
   },
   {
