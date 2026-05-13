@@ -1,17 +1,30 @@
 export const COLORS = {
-  sidebar: '#1E3A8A',      // Deep blue sidebar
-  sidebarHover: '#1E40AF',
-  activeItem: '#BBC0DF',   // Orange active state
+  // Primary Brand
+  primary: '#2A3A9D',
+
+  // Sidebar
+  sidebar: '#2A3A9D',
+  sidebarHover: '#3246B8',
+  activeItem: '#4458C7',
   activeItemText: '#FFFFFF',
-  textMuted: '#94A3B8',
-  chartBar: '#1E3A8A',     // Bar chart bars
-  pieInStock: '#10B981',   // Green
-  pieLowStock: '#F97316',  // Orange
-  pieOutStock: '#EF4444',  // Red
-  bgMain: '#F1F5F9',       // Page background
-  cardBg: '#FFFFFF',
+
+  // Text
   textPrimary: '#1E293B',
   textSecondary: '#64748B',
+  textMuted: '#94A3B8',
+
+  // Charts
+  chartBar: '#2A3A9D',
+
+  // Status Colors
+  pieInStock: '#10B981',
+  pieLowStock: '#F59E0B',
+  pieOutStock: '#EF4444',
+
   success: '#10B981',
   danger: '#EF4444',
+
+  // Backgrounds
+  bgMain: '#F5F7FF',
+  cardBg: '#FFFFFF',
 };

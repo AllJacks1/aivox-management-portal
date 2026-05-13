@@ -50,7 +50,7 @@ export default function LoginPage() {
             <div className="relative h-20 w-84 overflow-hidden">
               <Image
                 src="/astra_management_logo.png"
-                alt="SaaSPlatform Logo"
+                alt="Astra Management Hub Logo"
                 fill={true}
                 className="object-contain"
                 priority
