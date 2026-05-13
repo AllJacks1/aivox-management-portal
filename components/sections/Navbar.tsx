@@ -52,13 +52,13 @@ interface SidebarProps {
 
 // ─── Navigation Data ────────────────────────────────────────────
 const navItems: NavItem[] = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/portal/dashboard" },
   {
     icon: Package,
     label: "Inventory",
-    href: "/inventory",
+    href: "/portal/inventory",
     subItems: [
-      { label: "Products", href: "/inventory/products" },
+      { label: "Products", href: "/portal/inventory/products" },
       { label: "Categories", href: "/inventory/categories" },
       { label: "Stock Levels", href: "/inventory/stock-levels" },
       { label: "Stock Adjustments", href: "/inventory/adjustments" },
@@ -260,31 +260,35 @@ function NavItemComponent({
 
   return (
     <div className="space-y-0.5">
-      <button
-        onClick={() => hasSubItems && toggleExpand(item.label)}
-        className={cn(
-          "w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
-          isActive || isSubActive
-            ? "text-white shadow-sm"
-            : "text-slate-300 hover:text-white hover:bg-white/10",
-        )}
-        style={
-          isActive || isSubActive ? { backgroundColor: COLORS.activeItem } : {}
-        }
-      >
-        <div className="flex items-center gap-3 min-w-0">
-          <Icon
-            className={cn(
-              "w-5 h-5 flex-shrink-0",
-              isActive || isSubActive
-                ? "text-white"
-                : "text-slate-400 group-hover:text-white",
-            )}
-          />
-          <span className="truncate">{item.label}</span>
-        </div>
+      {hasSubItems ? (
+        // ─── Parent Category (has subitems) ─────────────────────────
+        // Clicking toggles expand/collapse. Subitems are Links inside.
+        <button
+          onClick={() => toggleExpand(item.label)}
+          className={cn(
+            "w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
+            isActive || isSubActive
+              ? "text-white shadow-sm"
+              : "text-slate-300 hover:text-white hover:bg-white/10",
+          )}
+          style={
+            isActive || isSubActive
+              ? { backgroundColor: COLORS.activeItem }
+              : {}
+          }
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <Icon
+              className={cn(
+                "w-5 h-5 flex-shrink-0",
+                isActive || isSubActive
+                  ? "text-white"
+                  : "text-slate-400 group-hover:text-white",
+              )}
+            />
+            <span className="truncate">{item.label}</span>
+          </div>
 
-        {hasSubItems && (
           <div
             className={cn(
               "flex-shrink-0 text-slate-400 group-hover:text-white transition-transform duration-300",
@@ -293,10 +297,31 @@ function NavItemComponent({
           >
             <ChevronDown className="w-4 h-4" />
           </div>
-        )}
-      </button>
+        </button>
+      ) : (
+        // ─── Leaf Item (no subitems) ────────────────────────────────
+        // Clicking navigates via next/link. No expand behavior.
+        <Link
+          href={item.href || "#"}
+          className={cn(
+            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
+            isActive
+              ? "text-white shadow-sm"
+              : "text-slate-300 hover:text-white hover:bg-white/10",
+          )}
+          style={isActive ? { backgroundColor: COLORS.activeItem } : {}}
+        >
+          <Icon
+            className={cn(
+              "w-5 h-5 flex-shrink-0",
+              isActive ? "text-white" : "text-slate-400 group-hover:text-white",
+            )}
+          />
+          <span className="truncate">{item.label}</span>
+        </Link>
+      )}
 
-      {/* Sub Items - Grid trick for smooth animation */}
+      {/* Sub Items - only render for parent categories */}
       {hasSubItems && (
         <div
           className="grid transition-all duration-300 ease-in-out"
