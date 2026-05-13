@@ -80,11 +80,11 @@ const navItems: NavItem[] = [
   {
     icon: Monitor,
     label: "Display",
-    href: "/display",
+    href: "/portal/display",
     subItems: [
-      { label: "Display Inventory", href: "/display/inventory" },
-      { label: "Restocking", href: "/display/restocking" },
-      { label: "Pullouts", href: "/display/pullouts" },
+      { label: "Display Inventory", href: "/portal/display/inventory" },
+      { label: "Restocking", href: "/portal/display/restocking" },
+      { label: "Pullouts", href: "/portal/display/pullouts" },
     ],
   },
   {
