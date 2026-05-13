@@ -1,7 +1,5 @@
 "use client";
 
-import Header from "@/components/sections/Header";
-import Sidebar from "@/components/sections/Navbar";
 import { COLORS } from "@/styles/colors";
 import {
   Package,
@@ -61,8 +59,6 @@ const salesData = [
   { month: "May", value: 55000 },
 ];
 
-const maxSales = Math.max(...salesData.map((d) => d.value));
-
 // ─── Inventory Pie Data ─────────────────────────────────────────
 const inventoryData = [
   { label: "In Stock", value: 82, color: COLORS.pieInStock },
@@ -109,7 +105,6 @@ function BarChart() {
         Sales Overview
       </h3>
       <div className="relative h-64">
-        {/* Y-axis labels */}
         <div className="absolute left-0 top-0 bottom-8 w-12 flex flex-col justify-between text-xs text-gray-400 text-right pr-2">
           <span>80000</span>
           <span>60000</span>
@@ -118,9 +113,7 @@ function BarChart() {
           <span>0</span>
         </div>
 
-        {/* Chart Area */}
         <div className="ml-12 h-full flex flex-col">
-          {/* Grid lines */}
           <div className="flex-1 relative">
             {[0, 1, 2, 3, 4].map((i) => (
               <div
@@ -130,7 +123,6 @@ function BarChart() {
               />
             ))}
 
-            {/* Bars */}
             <div className="absolute inset-0 flex items-end justify-around px-4 pb-0">
               {salesData.map((item, idx) => {
                 const heightPercent = (item.value / 80000) * 100;
@@ -140,7 +132,7 @@ function BarChart() {
                     className="flex flex-col items-center gap-2 flex-1"
                   >
                     <div
-                      className="w-16 rounded-t-sm transition-all duration-500 hover:opacity-80"
+                      className="w-full max-w-[60px] rounded-t-sm transition-all duration-500 hover:opacity-80"
                       style={{
                         height: `${heightPercent}%`,
                         backgroundColor: COLORS.chartBar,
@@ -153,8 +145,7 @@ function BarChart() {
             </div>
           </div>
 
-          {/* X-axis labels */}
-          <div className="h-8 flex justify-around items-center ml-0 mr-0">
+          <div className="h-8 flex justify-around items-center">
             {salesData.map((item, idx) => (
               <span
                 key={idx}
@@ -171,7 +162,6 @@ function BarChart() {
 }
 
 function PieChart() {
-  // Calculate SVG pie slices
   const radius = 80;
   const center = 100;
   let currentAngle = 0;
@@ -203,8 +193,7 @@ function PieChart() {
       <h3 className="text-base font-semibold text-gray-900 mb-6">
         Inventory Status
       </h3>
-      <div className="flex items-center justify-center gap-8">
-        {/* Legend Left */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-8">
         <div className="flex flex-col gap-4">
           {slices.map((slice, idx) => (
             <div key={idx} className="flex items-center gap-2">
@@ -222,10 +211,9 @@ function PieChart() {
           ))}
         </div>
 
-        {/* Pie SVG */}
         <svg
-          width="200"
-          height="200"
+          width="180"
+          height="180"
           viewBox="0 0 200 200"
           className="flex-shrink-0"
         >
@@ -239,7 +227,6 @@ function PieChart() {
               className="hover:opacity-90 transition-opacity cursor-pointer"
             />
           ))}
-          {/* Inner circle for donut effect (optional, keeping full pie per reference) */}
         </svg>
       </div>
     </div>
@@ -281,12 +268,12 @@ function TopSellingProducts() {
         <h3 className="text-base font-semibold text-gray-900">
           Top Selling Products
         </h3>
-        <button className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors">
+        <button className="text-sm font-medium text-[#2A3A9D] hover:text-[#3246B8] flex items-center gap-1 transition-colors">
           View All <ChevronRight className="w-4 h-4" />
         </button>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      <div className="overflow-x-auto -mx-6 px-6">
+        <table className="w-full min-w-[640px]">
           <thead>
             <tr className="border-b border-gray-100">
               <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider pb-3 pr-4">
@@ -308,10 +295,10 @@ function TopSellingProducts() {
               <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                 <td className="py-3.5 pr-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
                       <Package className="w-4 h-4 text-gray-500" />
                     </div>
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-sm font-medium text-gray-900 truncate">
                       {product.name}
                     </span>
                   </div>
@@ -328,7 +315,7 @@ function TopSellingProducts() {
                       product.stock === "In Stock"
                         ? "bg-emerald-50 text-emerald-700"
                         : product.stock === "Low Stock"
-                          ? "bg-orange-50 text-orange-700"
+                          ? "bg-amber-50 text-amber-700"
                           : "bg-red-50 text-red-700"
                     }`}
                   >
@@ -347,41 +334,32 @@ function TopSellingProducts() {
 // ─── Main Dashboard Page ────────────────────────────────────────
 export default function DashboardPage() {
   return (
-    <div className="min-h-screen bg-slate-50">
-      <aside>
-        <Sidebar />
-      </aside>
-      <div className="ml-64 min-h-screen flex flex-col">
-        <Header />
-
-        <main className="flex-1 p-6 space-y-6">
-          {/* Page Title */}
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Dashboard Overview
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Welcome back! Here's what's happening with your tire shop today.
-            </p>
-          </div>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-            {stats.map((stat, idx) => (
-              <StatCard key={idx} stat={stat} />
-            ))}
-          </div>
-
-          {/* Charts Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            <BarChart />
-            <PieChart />
-          </div>
-
-          {/* Products Table */}
-          <TopSellingProducts />
-        </main>
+    <>
+      {/* Page Title */}
+      <div>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+          Dashboard Overview
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Welcome back! Here's what's happening with your tire shop today.
+        </p>
       </div>
-    </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
+        {stats.map((stat, idx) => (
+          <StatCard key={idx} stat={stat} />
+        ))}
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+        <BarChart />
+        <PieChart />
+      </div>
+
+      {/* Products Table */}
+      <TopSellingProducts />
+    </>
   );
 }

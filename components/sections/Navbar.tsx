@@ -43,6 +43,13 @@ interface NavItem {
   subItems?: SubItem[];
 }
 
+interface SidebarProps {
+  mobileOpen?: boolean;
+  setMobileOpen?: (open: boolean) => void;
+  isCollapsed?: boolean;
+  setIsCollapsed?: (collapsed: boolean) => void;
+}
+
 // ─── Navigation Data ────────────────────────────────────────────
 const navItems: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
@@ -331,13 +338,21 @@ function NavItemComponent({
 }
 
 // ─── Main Sidebar Component ─────────────────────────────────────
-export default function Sidebar() {
+export default function Sidebar({
+  mobileOpen,
+  setMobileOpen,
+  isCollapsed = false,
+  setIsCollapsed,
+}: SidebarProps) {
   const pathname = usePathname();
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [internalMobileOpen, setInternalMobileOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(
     new Set(["Inventory"]),
   );
+
+  // Use external state if provided, otherwise internal
+  const mobileSheetOpen = mobileOpen ?? internalMobileOpen;
+  const setMobileSheetOpen = setMobileOpen ?? setInternalMobileOpen;
 
   // Auto-expand parent if child is active
   useEffect(() => {
@@ -360,9 +375,13 @@ export default function Sidebar() {
     });
   };
 
+  const handleCollapseToggle = () => {
+    setIsCollapsed?.(!isCollapsed);
+  };
+
   // ─── Mobile Sidebar (Sheet) ─────────────────────────────────
   const MobileSidebar = () => (
-    <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
+    <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
       <SheetTrigger asChild>
         <Button
           variant="ghost"
@@ -407,9 +426,7 @@ export default function Sidebar() {
                 item={item}
                 isCollapsed={false}
                 expandedItems={expandedItems}
-                toggleExpand={(label) => {
-                  toggleExpand(label);
-                }}
+                toggleExpand={(label) => toggleExpand(label)}
                 pathname={pathname}
               />
             ))}
@@ -464,7 +481,7 @@ export default function Sidebar() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={handleCollapseToggle}
           className="text-slate-400 hover:text-white hover:bg-white/10 h-8 w-8"
         >
           {isCollapsed ? (
