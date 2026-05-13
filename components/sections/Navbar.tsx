@@ -85,6 +85,7 @@ const navItems: NavItem[] = [
       { label: "Display Inventory", href: "/portal/display/inventory" },
       { label: "Restocking", href: "/portal/display/restocking" },
       { label: "Pullouts", href: "/portal/display/pullouts" },
+      { label: "Logs", href: "/portal/display/logs" },
     ],
   },
   {
