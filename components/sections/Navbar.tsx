@@ -59,11 +59,11 @@ const navItems: NavItem[] = [
     href: "/portal/inventory",
     subItems: [
       { label: "Products", href: "/portal/inventory/products" },
-      { label: "Categories", href: "/inventory/categories" },
-      { label: "Stock Levels", href: "/inventory/stock-levels" },
-      { label: "Stock Adjustments", href: "/inventory/adjustments" },
-      { label: "Low Stock Alerts", href: "/inventory/alerts" },
-      { label: "Inventory Reports", href: "/inventory/reports" },
+      { label: "Categories", href: "/portal/inventory/categories" },
+      { label: "Stock Levels", href: "/portal/inventory/stock-levels" },
+      { label: "Stock Adjustments", href: "/portal/inventory/adjustments" },
+      { label: "Low Stock Alerts", href: "/portal/inventory/alerts" },
+      { label: "Inventory Reports", href: "/portal/inventory/reports" },
     ],
   },
   {
