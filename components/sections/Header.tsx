@@ -51,7 +51,7 @@ export default function Header({
         )}
 
         {/* Search - Desktop always visible, Mobile collapsible */}
-        <div
+        {/* <div
           className={cn(
             "flex items-center flex-1 transition-all duration-200",
             isSearchOpen
@@ -66,7 +66,7 @@ export default function Header({
               placeholder="Search..."
               className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2A3A9D]/20 focus:border-[#2A3A9D] transition-all"
             />
-            {/* Mobile close search */}
+            Mobile close search
             {isSearchOpen && (
               <Button
                 variant="ghost"
@@ -78,10 +78,10 @@ export default function Header({
               </Button>
             )}
           </div>
-        </div>
+        </div> */}
 
         {/* Mobile Search Toggle */}
-        {!isSearchOpen && (
+        {/* {!isSearchOpen && (
           <Button
             variant="ghost"
             size="icon"
@@ -90,7 +90,7 @@ export default function Header({
           >
             <Search className="w-5 h-5" />
           </Button>
-        )}
+        )} */}
       </div>
 
       {/* Right Actions */}

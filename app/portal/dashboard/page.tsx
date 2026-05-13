@@ -1,5 +1,4 @@
 "use client";
-
 import { COLORS } from "@/styles/colors";
 import {
   Package,
@@ -8,14 +7,44 @@ import {
   ShoppingCart as CartIcon,
   Package as PackageIcon,
   Users as UsersIcon,
+  ArrowUpRight,
+  ArrowDownRight,
+  MoreHorizontal,
 } from "lucide-react";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  PointElement,
+  LineElement,
+  Tooltip,
+  Legend,
+  Filler,
+} from "chart.js";
+import { Bar, Doughnut } from "react-chartjs-2";
+
+// ─── Register Chart.js components ─────────────────────────────
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  PointElement,
+  LineElement,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 // ─── Stat Cards Data ────────────────────────────────────────────
 const stats = [
   {
     title: "Total Revenue",
     value: "$261,000",
-    change: "+12.5% from last month",
+    change: "+12.5%",
+    changeLabel: "from last month",
     changeType: "positive" as const,
     icon: DollarIcon,
     iconBg: "#EFF6FF",
@@ -24,7 +53,8 @@ const stats = [
   {
     title: "Total Orders",
     value: "710",
-    change: "+8.2% from last month",
+    change: "+8.2%",
+    changeLabel: "from last month",
     changeType: "positive" as const,
     icon: CartIcon,
     iconBg: "#F0FDF4",
@@ -33,7 +63,8 @@ const stats = [
   {
     title: "Inventory Items",
     value: "550",
-    change: "-3 from yesterday",
+    change: "-3",
+    changeLabel: "from yesterday",
     changeType: "negative" as const,
     icon: PackageIcon,
     iconBg: "#FEF2F2",
@@ -42,7 +73,8 @@ const stats = [
   {
     title: "Active Customers",
     value: "1,245",
-    change: "+45 new this month",
+    change: "+45",
+    changeLabel: "new this month",
     changeType: "positive" as const,
     icon: UsersIcon,
     iconBg: "#F5F3FF",
@@ -50,45 +82,131 @@ const stats = [
   },
 ];
 
-// ─── Sales Chart Data ───────────────────────────────────────────
-const salesData = [
-  { month: "Jan", value: 45000 },
-  { month: "Feb", value: 52000 },
-  { month: "Mar", value: 48000 },
-  { month: "Apr", value: 61000 },
-  { month: "May", value: 55000 },
-];
+// ─── Chart Data ─────────────────────────────────────────────────
+const salesData = {
+  labels: ["Jan", "Feb", "Mar", "Apr", "May"],
+  datasets: [
+    {
+      label: "Sales ($)",
+      data: [45000, 52000, 48000, 61000, 55000],
+      backgroundColor: COLORS.chartBar,
+      borderRadius: 6,
+      borderSkipped: false,
+      barPercentage: 0.6,
+      categoryPercentage: 0.7,
+    },
+  ],
+};
 
-// ─── Inventory Pie Data ─────────────────────────────────────────
-const inventoryData = [
-  { label: "In Stock", value: 82, color: COLORS.pieInStock },
-  { label: "Low Stock", value: 15, color: COLORS.pieLowStock },
-  { label: "Out of Stock", value: 3, color: COLORS.pieOutStock },
-];
+const salesOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: "#1E293B",
+      padding: 12,
+      cornerRadius: 8,
+      titleFont: { size: 13, family: "Inter" },
+      bodyFont: { size: 13, family: "Inter" },
+      callbacks: {
+        label: (ctx: any) => `$${ctx.parsed.y.toLocaleString()}`,
+      },
+    },
+  },
+  scales: {
+    x: {
+      grid: { display: false },
+      ticks: {
+        color: "#64748B",
+        font: { size: 12, family: "Inter" },
+      },
+      border: { display: false },
+    },
+    y: {
+      beginAtZero: true,
+      max: 80000,
+      ticks: {
+        stepSize: 20000,
+        color: "#94A3B8",
+        font: { size: 11, family: "Inter" },
+        callback: (value: any) => {
+          if (value === 0) return "0";
+          return value / 1000 + "k";
+        },
+      },
+      grid: {
+        color: "#E2E8F0",
+        borderDash: [4, 4],
+      },
+      border: { display: false },
+    },
+  },
+};
+
+const inventoryData = {
+  labels: ["In Stock", "Low Stock", "Out of Stock"],
+  datasets: [
+    {
+      data: [82, 15, 3],
+      backgroundColor: [
+        COLORS.pieInStock,
+        COLORS.pieLowStock,
+        COLORS.pieOutStock,
+      ],
+      borderWidth: 0,
+      hoverOffset: 4,
+    },
+  ],
+};
+
+const inventoryOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  cutout: "60%",
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: "#1E293B",
+      padding: 12,
+      cornerRadius: 8,
+      callbacks: {
+        label: (ctx: any) => `${ctx.label}: ${ctx.parsed}%`,
+      },
+    },
+  },
+};
 
 // ─── Components ─────────────────────────────────────────────────
 function StatCard({ stat }: { stat: (typeof stats)[0] }) {
   const Icon = stat.icon;
+  const ChangeIcon = stat.changeType === "positive" ? ArrowUpRight : ArrowDownRight;
+
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-all duration-200 group">
       <div className="flex items-start justify-between">
         <div className="space-y-3">
           <p className="text-sm font-medium text-gray-500">{stat.title}</p>
           <p className="text-2xl font-bold text-gray-900 tracking-tight">
             {stat.value}
           </p>
-          <p
-            className={`text-xs font-medium ${
-              stat.changeType === "positive"
-                ? "text-emerald-600"
-                : "text-red-500"
-            }`}
-          >
-            {stat.change}
-          </p>
+          <div className="flex items-center gap-1">
+            <span
+              className={cn(
+                "inline-flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full",
+                stat.changeType === "positive"
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "bg-red-50 text-red-700"
+              )}
+            >
+              <ChangeIcon className="w-3 h-3" />
+              {stat.change}
+            </span>
+            <span className="text-xs text-gray-400">{stat.changeLabel}</span>
+          </div>
         </div>
         <div
-          className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+          className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
           style={{ backgroundColor: stat.iconBg }}
         >
           <Icon className="w-5 h-5" style={{ color: stat.iconColor }} />
@@ -98,136 +216,53 @@ function StatCard({ stat }: { stat: (typeof stats)[0] }) {
   );
 }
 
-function BarChart() {
+function SalesChart() {
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-      <h3 className="text-base font-semibold text-gray-900 mb-6">
-        Sales Overview
-      </h3>
-      <div className="relative h-64">
-        <div className="absolute left-0 top-0 bottom-8 w-12 flex flex-col justify-between text-xs text-gray-400 text-right pr-2">
-          <span>80000</span>
-          <span>60000</span>
-          <span>40000</span>
-          <span>20000</span>
-          <span>0</span>
-        </div>
-
-        <div className="ml-12 h-full flex flex-col">
-          <div className="flex-1 relative">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="absolute w-full border-t border-dashed border-gray-200"
-                style={{ top: `${i * 25}%` }}
-              />
-            ))}
-
-            <div className="absolute inset-0 flex items-end justify-around px-4 pb-0">
-              {salesData.map((item, idx) => {
-                const heightPercent = (item.value / 80000) * 100;
-                return (
-                  <div
-                    key={idx}
-                    className="flex flex-col items-center gap-2 flex-1"
-                  >
-                    <div
-                      className="w-full max-w-[60px] rounded-t-sm transition-all duration-500 hover:opacity-80"
-                      style={{
-                        height: `${heightPercent}%`,
-                        backgroundColor: COLORS.chartBar,
-                        minHeight: "4px",
-                      }}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="h-8 flex justify-around items-center">
-            {salesData.map((item, idx) => (
-              <span
-                key={idx}
-                className="text-xs text-gray-500 font-medium w-16 text-center"
-              >
-                {item.month}
-              </span>
-            ))}
-          </div>
-        </div>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-base font-semibold text-gray-900">Sales Overview</h3>
+        <button className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
+          <MoreHorizontal className="w-4 h-4 text-gray-400" />
+        </button>
+      </div>
+      <div className="h-64">
+        <Bar data={salesData} options={salesOptions} />
       </div>
     </div>
   );
 }
 
-function PieChart() {
-  const radius = 80;
-  const center = 100;
-  let currentAngle = 0;
-
-  const slices = inventoryData.map((item) => {
-    const angle = (item.value / 100) * 360;
-    const startAngle = currentAngle;
-    const endAngle = currentAngle + angle;
-    currentAngle += angle;
-
-    const startRad = (startAngle * Math.PI) / 180;
-    const endRad = (endAngle * Math.PI) / 180;
-
-    const x1 = center + radius * Math.cos(startRad);
-    const y1 = center + radius * Math.sin(startRad);
-    const x2 = center + radius * Math.cos(endRad);
-    const y2 = center + radius * Math.sin(endRad);
-
-    const largeArc = angle > 180 ? 1 : 0;
-
-    return {
-      ...item,
-      path: `M ${center} ${center} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`,
-    };
-  });
-
+function InventoryChart() {
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-      <h3 className="text-base font-semibold text-gray-900 mb-6">
-        Inventory Status
-      </h3>
+      <h3 className="text-base font-semibold text-gray-900 mb-6">Inventory Status</h3>
       <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-8">
-        <div className="flex flex-col gap-4">
-          {slices.map((slice, idx) => (
-            <div key={idx} className="flex items-center gap-2">
+        <div className="flex flex-col gap-3">
+          {[
+            { label: "In Stock", value: 82, color: COLORS.pieInStock },
+            { label: "Low Stock", value: 15, color: COLORS.pieLowStock },
+            { label: "Out of Stock", value: 3, color: COLORS.pieOutStock },
+          ].map((item, idx) => (
+            <div key={idx} className="flex items-center gap-2.5">
               <span
                 className="w-3 h-3 rounded-full flex-shrink-0"
-                style={{ backgroundColor: slice.color }}
+                style={{ backgroundColor: item.color }}
               />
               <span className="text-sm text-gray-600">
-                {slice.label}{" "}
-                <span className="font-semibold text-gray-900">
-                  {slice.value}%
-                </span>
+                {item.label}{" "}
+                <span className="font-semibold text-gray-900">{item.value}%</span>
               </span>
             </div>
           ))}
         </div>
 
-        <svg
-          width="180"
-          height="180"
-          viewBox="0 0 200 200"
-          className="flex-shrink-0"
-        >
-          {slices.map((slice, idx) => (
-            <path
-              key={idx}
-              d={slice.path}
-              fill={slice.color}
-              stroke="white"
-              strokeWidth="2"
-              className="hover:opacity-90 transition-opacity cursor-pointer"
-            />
-          ))}
-        </svg>
+        <div className="relative w-44 h-44">
+          <Doughnut data={inventoryData} options={inventoryOptions} />
+          <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
+            <span className="text-2xl font-bold text-gray-900">550</span>
+            <span className="text-xs text-gray-500">Total Items</span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -331,6 +366,11 @@ function TopSellingProducts() {
   );
 }
 
+// ─── Utility ────────────────────────────────────────────────────
+function cn(...classes: (string | boolean | undefined)[]) {
+  return classes.filter(Boolean).join(" ");
+}
+
 // ─── Main Dashboard Page ────────────────────────────────────────
 export default function DashboardPage() {
   return (
@@ -354,8 +394,8 @@ export default function DashboardPage() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
-        <BarChart />
-        <PieChart />
+        <SalesChart />
+        <InventoryChart />
       </div>
 
       {/* Products Table */}
