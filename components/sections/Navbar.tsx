@@ -103,12 +103,12 @@ const navItems: NavItem[] = [
   {
     icon: Users,
     label: "CRM",
-    href: "/crm",
+    href: "/portal/crm",
     subItems: [
-      { label: "Customer List", href: "/crm/customers" },
-      { label: "Customer Profiles", href: "/crm/profiles" },
-      { label: "Purchase History", href: "/crm/history" },
-      { label: "Loyalty Points", href: "/crm/loyalty" },
+      { label: "Customer List", href: "/portal/crm/customers" },
+      { label: "Customer Profiles", href: "/portal/crm/profiles" },
+      { label: "Purchase History", href: "/portal/crm/history" },
+      { label: "Loyalty Points", href: "/portal/crm/loyalty" },
     ],
   },
   {
