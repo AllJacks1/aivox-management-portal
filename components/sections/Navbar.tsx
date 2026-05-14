@@ -91,13 +91,13 @@ const navItems: NavItem[] = [
   {
     icon: ShoppingCart,
     label: "POS Sales",
-    href: "/pos",
+    href: "/portal/pos",
     subItems: [
-      { label: "New Sale", href: "/pos/new" },
-      { label: "Transactions", href: "/pos/transactions" },
-      { label: "Receipts", href: "/pos/receipts" },
-      { label: "Discounts", href: "/pos/discounts" },
-      { label: "Daily Sales Report", href: "/pos/daily-report" },
+      { label: "New Sale", href: "/portal/pos/new" },
+      { label: "Transactions", href: "/portal/pos/transactions" },
+      { label: "Receipts", href: "/portal/pos/receipts" },
+      { label: "Discounts", href: "/portal/pos/discounts" },
+      { label: "Daily Sales Report", href: "/portal/pos/daily-report" },
     ],
   },
   {
