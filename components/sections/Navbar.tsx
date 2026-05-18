@@ -114,12 +114,12 @@ const navItems: NavItem[] = [
   {
     icon: Truck,
     label: "Suppliers",
-    href: "/suppliers",
+    href: "/portal/suppliers",
     subItems: [
-      { label: "Supplier List", href: "/suppliers/list" },
-      { label: "Purchase Orders", href: "/suppliers/orders" },
-      { label: "Deliveries", href: "/suppliers/deliveries" },
-      { label: "Supplier Payments", href: "/suppliers/payments" },
+      { label: "Supplier List", href: "/portal/suppliers/list" },
+      { label: "Purchase Orders", href: "/portal/suppliers/orders" },
+      { label: "Deliveries", href: "/portal/suppliers/deliveries" },
+      { label: "Supplier Payments", href: "/portal/suppliers/payments" },
     ],
   },
   {
