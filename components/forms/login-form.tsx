@@ -110,7 +110,8 @@ export function LoginForm({
               width={242}
               height={242}
               className="object-cover dark:brightness-[0.2] dark:grayscale"
-              priority // ensures logo loads quickly
+              priority 
+              loading="eager"// ensures logo loads quickly
             />
           </div>
         </CardContent>
