@@ -10,7 +10,11 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
-import { BrandName, LoginLogoPath } from "@/lib/banding/brand";
+import {
+  BrandName,
+  BrandPrimaryColor,
+  LoginLogoPath,
+} from "@/lib/banding/brand";
 
 export function LoginForm({
   className,
@@ -50,7 +54,17 @@ export function LoginForm({
                 <Input id="password" type="password" required />
               </Field>
               <Field>
-                <Button type="submit">Login</Button>
+                <Button
+                  type="submit"
+                  className="relative hover:cursor-pointer 
+             transition-all duration-300 ease-in-out 
+             hover:scale-105 hover:shadow-lg 
+             hover:shadow-gray-500/40 
+             text-white font-semibold rounded-lg"
+                  style={{ backgroundColor: BrandPrimaryColor }}
+                >
+                  Login
+                </Button>
               </Field>
               {/* <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
                 Or continue with
@@ -102,8 +116,25 @@ export function LoginForm({
         </CardContent>
       </Card>
       <FieldDescription className="px-6 text-center text-green-700">
-        By clicking continue, you agree to our <a href="#" className="hover:text-green-600!">Terms of Service</a>{" "}
-        and <a href="#" className="hover:text-green-600!">Privacy Policy</a>.
+        By clicking continue, you agree to our{" "}
+        <a
+          href="#"
+          className="relative font-medium text-green-700 
+               transition-all duration-300 ease-in-out 
+               hover:text-green-600! hover:underline"
+        >
+          Terms of Service
+        </a>{" "}
+        and{" "}
+        <a
+          href="#"
+          className="relative font-medium text-green-700 
+               transition-all duration-300 ease-in-out 
+               hover:text-green-600! hover:underline"
+        >
+          Privacy Policy
+        </a>
+        .
       </FieldDescription>
     </div>
   );
