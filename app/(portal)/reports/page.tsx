@@ -1,16 +1,24 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState } from "react";
 import {
   Download,
   TrendingUp,
+  TrendingDown,
   Users,
   Package,
   DollarSign,
-  X,
+  Calendar,
+  ArrowUpRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -21,12 +29,22 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogClose,
+  DialogTrigger,
 } from "@/components/ui/dialog";
+
 import {
   LineChart,
   Line,
@@ -40,744 +58,462 @@ import {
   PieChart,
   Pie,
   Cell,
+  Legend,
 } from "recharts";
-import { cn } from "@/lib/utils";
-
-// ───────────────────────────────────────────────
-// Constants & Configuration
-// ───────────────────────────────────────────────
 
 const PRIMARY_COLOR = "#20B757";
-const SECONDARY_COLOR = "#0EA5E9";
-const CHART_COLORS = {
-  primary: PRIMARY_COLOR,
-  secondary: SECONDARY_COLOR,
-  cash: "#20B757",
-  gcash: "#22C55E",
-  card: "#4ADE80",
-  maya: "#86EFAC",
-  grid: "#E4E4E7",
-  text: "#71717A",
-};
+const SECONDARY_COLOR = "#15803D";
 
-const PERIODS = [
-  { value: "today", label: "Today" },
-  { value: "yesterday", label: "Yesterday" },
-  { value: "thisweek", label: "This Week" },
-  { value: "thismonth", label: "This Month" },
-] as const;
-
-type Period = (typeof PERIODS)[number]["value"];
-type ReportType = "sales" | "inventory" | "customer";
-
-// ───────────────────────────────────────────────
-// Mock Data
-// ───────────────────────────────────────────────
-
-const SUMMARY = {
-  totalSales: 124_850,
-  totalTransactions: 87,
-  averageOrder: 1_435,
-  topProduct: "Coca-Cola 1.5L",
-  lowStockItems: 5,
-};
-
-const SALES_TREND_DATA = [
-  { day: "Mon", sales: 12_400, transactions: 18 },
-  { day: "Tue", sales: 15_600, transactions: 22 },
-  { day: "Wed", sales: 9_800, transactions: 15 },
-  { day: "Thu", sales: 18_900, transactions: 28 },
-  { day: "Fri", sales: 22_400, transactions: 31 },
-  { day: "Sat", sales: 27_800, transactions: 42 },
-  { day: "Sun", sales: 18_200, transactions: 26 },
-];
-
-const TOP_PRODUCTS_DATA = [
-  { name: "Coca-Cola 1.5L", sales: 12_450 },
-  { name: "Potato Chips", sales: 8_750 },
-  { name: "White Bread", sales: 6_320 },
-  { name: "Mineral Water", sales: 4_250 },
-  { name: "Eggs Tray", sales: 3_150 },
-];
-
-const PAYMENT_DATA = [
-  { name: "Cash", value: 45, color: CHART_COLORS.cash },
-  { name: "GCash", value: 32, color: CHART_COLORS.gcash },
-  { name: "Card", value: 18, color: CHART_COLORS.card },
-  { name: "Maya", value: 5, color: CHART_COLORS.maya },
-];
-
-const REPORT_CARDS = [
-  {
-    title: "Full Sales Report",
-    description: "Complete transaction breakdown with filters",
-    type: "sales" as ReportType,
-    icon: "📊",
-  },
-  {
-    title: "Inventory Valuation",
-    description: "Stock value, movement & low stock analysis",
-    type: "inventory" as ReportType,
-    icon: "📦",
-  },
-  {
-    title: "Customer Analytics",
-    description: "Loyalty tiers and purchase behavior",
-    type: "customer" as ReportType,
-    icon: "👥",
-  },
-];
-
-// ───────────────────────────────────────────────
-// Utility Components
-// ───────────────────────────────────────────────
-
-function Currency({
-  amount,
-  className,
-}: {
-  amount: number;
-  className?: string;
-}) {
-  const formatted = useMemo(
-    () =>
-      new Intl.NumberFormat("en-PH", {
-        style: "currency",
-        currency: "PHP",
-        minimumFractionDigits: 0,
-      }).format(amount),
-    [amount],
-  );
-
-  return <span className={className}>{formatted}</span>;
+interface SalesTrendData {
+  day: string;
+  sales: number;
+  transactions: number;
+  growth: number;
 }
-
-function MetricCard({
-  label,
-  value,
-  icon: Icon,
-  trend,
-  trendValue,
-  color = "emerald",
-}: {
-  label: string;
-  value: React.ReactNode;
-  icon: React.ElementType;
-  trend?: "up" | "down" | "neutral";
-  trendValue?: string;
-  color?: "emerald" | "amber" | "zinc";
-}) {
-  const colorMap = {
-    emerald: "text-emerald-600",
-    amber: "text-amber-600",
-    zinc: "text-zinc-600",
-  };
-
-  return (
-    <Card className="overflow-hidden border-zinc-200/60 shadow-sm hover:shadow-md transition-shadow duration-300">
-      <CardContent className="p-6">
-        <div className="flex justify-between items-start">
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-zinc-500">{label}</p>
-            <div className="text-3xl font-bold tracking-tight text-zinc-900">
-              {value}
-            </div>
-          </div>
-          <div
-            className={cn("p-2.5 rounded-xl bg-opacity-10", colorMap[color])}
-          >
-            <Icon className={cn("w-6 h-6", colorMap[color])} />
-          </div>
-        </div>
-
-        {trend && trendValue && (
-          <div className="mt-4 flex items-center gap-1.5">
-            {trend === "up" && (
-              <TrendingUp className="w-4 h-4 text-emerald-600" />
-            )}
-            <span
-              className={cn(
-                "text-sm font-medium",
-                trend === "up"
-                  ? "text-emerald-600"
-                  : trend === "down"
-                    ? "text-red-600"
-                    : "text-zinc-500",
-              )}
-            >
-              {trendValue}
-            </span>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-// ───────────────────────────────────────────────
-// Chart Components
-// ───────────────────────────────────────────────
-
-function SalesTrendChart({
-  data,
-  period,
-}: {
-  data: typeof SALES_TREND_DATA;
-  period: Period;
-}) {
-  const periodLabel =
-    PERIODS.find((p) => p.value === period)?.label ?? "This Week";
-
-  return (
-    <Card className="border-zinc-200/60 shadow-sm">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-semibold text-zinc-900">
-          Sales Trend ({periodLabel})
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={320}>
-          <LineChart
-            data={data}
-            margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-          >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke={CHART_COLORS.grid}
-              vertical={false}
-            />
-            <XAxis
-              dataKey="day"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: CHART_COLORS.text, fontSize: 12 }}
-              dy={10}
-            />
-            <YAxis
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: CHART_COLORS.text, fontSize: 12 }}
-              tickFormatter={(value: number) =>
-                `₱${(value / 1000).toFixed(0)}k`
-              }
-              width={50}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "#fff",
-                border: "1px solid #E4E4E7",
-                borderRadius: "12px",
-                boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                padding: "12px",
-              }}
-              formatter={(value: number) => [
-                new Intl.NumberFormat("en-PH", {
-                  style: "currency",
-                  currency: "PHP",
-                  minimumFractionDigits: 0,
-                }).format(value),
-                "Sales",
-              ]}
-              labelStyle={{ color: CHART_COLORS.text, marginBottom: "4px" }}
-            />
-            <Line
-              type="monotone"
-              dataKey="sales"
-              stroke={PRIMARY_COLOR}
-              strokeWidth={3}
-              dot={{
-                fill: PRIMARY_COLOR,
-                r: 4,
-                strokeWidth: 2,
-                stroke: "#fff",
-              }}
-              activeDot={{
-                r: 6,
-                fill: PRIMARY_COLOR,
-                stroke: "#fff",
-                strokeWidth: 3,
-              }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
-  );
-}
-
-function TopProductsChart({ data }: { data: typeof TOP_PRODUCTS_DATA }) {
-  return (
-    <Card className="border-zinc-200/60 shadow-sm">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-semibold text-zinc-900">
-          Top Selling Products
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart
-            data={data}
-            margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-          >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke={CHART_COLORS.grid}
-              vertical={false}
-            />
-            <XAxis
-              dataKey="name"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: CHART_COLORS.text, fontSize: 11 }}
-              dy={10}
-              interval={0}
-              angle={-15}
-              textAnchor="end"
-              height={60}
-            />
-            <YAxis
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: CHART_COLORS.text, fontSize: 12 }}
-              tickFormatter={(value: number) =>
-                `₱${(value / 1000).toFixed(0)}k`
-              }
-              width={50}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "#fff",
-                border: "1px solid #E4E4E7",
-                borderRadius: "12px",
-                boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                padding: "12px",
-              }}
-              formatter={(value: number) => [
-                new Intl.NumberFormat("en-PH", {
-                  style: "currency",
-                  currency: "PHP",
-                  minimumFractionDigits: 0,
-                }).format(value),
-                "Sales",
-              ]}
-              cursor={{ fill: "rgba(0,0,0,0.04)" }}
-            />
-            <Bar
-              dataKey="sales"
-              fill={PRIMARY_COLOR}
-              radius={[8, 8, 0, 0]}
-              maxBarSize={48}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
-  );
-}
-
-function PaymentMethodsChart({ data }: { data: typeof PAYMENT_DATA }) {
-  return (
-    <Card className="border-zinc-200/60 shadow-sm">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-semibold text-zinc-900">
-          Payment Methods
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col items-center">
-        <div className="w-full max-w-[280px]">
-          <ResponsiveContainer width="100%" height={260}>
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                innerRadius={70}
-                outerRadius={100}
-                dataKey="value"
-                stroke="none"
-                paddingAngle={3}
-              >
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#fff",
-                  border: "1px solid #E4E4E7",
-                  borderRadius: "12px",
-                  boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                  padding: "12px",
-                }}
-                formatter={(value: number) => [`${value}%`, "Share"]}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="w-full grid grid-cols-2 gap-3 mt-2">
-          {data.map((item) => (
-            <div
-              key={item.name}
-              className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-zinc-50 transition-colors"
-            >
-              <div
-                className="w-3 h-3 rounded-full shrink-0"
-                style={{ backgroundColor: item.color }}
-              />
-              <div className="flex flex-col">
-                <span className="text-sm font-medium text-zinc-700">
-                  {item.name}
-                </span>
-                <span className="text-xs text-zinc-400">{item.value}%</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// ───────────────────────────────────────────────
-// Report Modals
-// ───────────────────────────────────────────────
-
-function SalesReportModal() {
-  return (
-    <div className="space-y-6 py-4">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[
-          { label: "Total Sales", value: 124_850 },
-          { label: "Transactions", value: 87 },
-          { label: "Avg Order", value: 1_435 },
-        ].map((metric) => (
-          <Card key={metric.label} className="border-zinc-200/60">
-            <CardContent className="p-6 text-center">
-              <p className="text-2xl font-bold text-zinc-900">
-                {typeof metric.value === "number" && metric.value > 1000 ? (
-                  <Currency amount={metric.value} />
-                ) : (
-                  metric.value
-                )}
-              </p>
-              <p className="text-sm text-zinc-500 mt-1">{metric.label}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Card className="border-zinc-200/60">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Sales Trend</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={SALES_TREND_DATA}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke={CHART_COLORS.grid}
-                vertical={false}
-              />
-              <XAxis
-                dataKey="day"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: CHART_COLORS.text, fontSize: 12 }}
-                dy={10}
-              />
-              <YAxis
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: CHART_COLORS.text, fontSize: 12 }}
-                width={50}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#fff",
-                  border: "1px solid #E4E4E7",
-                  borderRadius: "12px",
-                  boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                  padding: "12px",
-                }}
-                formatter={(value: number) => [
-                  new Intl.NumberFormat("en-PH", {
-                    style: "currency",
-                    currency: "PHP",
-                    minimumFractionDigits: 0,
-                  }).format(value),
-                  "Sales",
-                ]}
-              />
-              <Line
-                type="monotone"
-                dataKey="sales"
-                stroke={PRIMARY_COLOR}
-                strokeWidth={3}
-                dot={{
-                  fill: PRIMARY_COLOR,
-                  r: 4,
-                  strokeWidth: 2,
-                  stroke: "#fff",
-                }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-function InventoryReportModal() {
-  return (
-    <div className="space-y-6 py-4">
-      <div className="flex items-baseline gap-2">
-        <span className="text-lg font-medium text-zinc-700">
-          Current Inventory Valuation:
-        </span>
-        <span className="text-2xl font-bold text-zinc-900">
-          <Currency amount={248_750} />
-        </span>
-      </div>
-
-      <div className="flex items-center gap-2 p-4 rounded-xl bg-amber-50 border border-amber-200">
-        <Package className="w-5 h-5 text-amber-600" />
-        <span className="text-amber-700 font-medium">
-          5 Low Stock Items Require Attention
-        </span>
-      </div>
-
-      <div className="mt-8 p-8 rounded-xl border-2 border-dashed border-zinc-200 text-center">
-        <Package className="w-12 h-12 text-zinc-300 mx-auto mb-3" />
-        <p className="text-zinc-500 font-medium">Inventory Table</p>
-        <p className="text-sm text-zinc-400 mt-1">
-          Full inventory breakdown would render here
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function CustomerReportModal() {
-  return (
-    <div className="space-y-6 py-4">
-      <p className="text-lg font-medium text-zinc-700">Customer Insights</p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Card className="border-zinc-200/60">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-bold text-zinc-900">42</p>
-                <p className="text-sm text-zinc-500 mt-1">
-                  Active Loyal Customers
-                </p>
-              </div>
-              <Users className="w-8 h-8 text-emerald-600 opacity-50" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-zinc-200/60">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-bold text-zinc-900">18</p>
-                <p className="text-sm text-zinc-500 mt-1">VIP / Gold Members</p>
-              </div>
-              <Users className="w-8 h-8 text-amber-600 opacity-50" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-const REPORT_MODALS: Record<ReportType, React.FC> = {
-  sales: SalesReportModal,
-  inventory: InventoryReportModal,
-  customer: CustomerReportModal,
-};
-
-const REPORT_TITLES: Record<ReportType, string> = {
-  sales: "Full Sales Report",
-  inventory: "Inventory Valuation Report",
-  customer: "Customer Analytics Report",
-};
-
-// ───────────────────────────────────────────────
-// Main Page Component
-// ───────────────────────────────────────────────
 
 export default function ReportsPage() {
-  const [reportPeriod, setReportPeriod] = useState<Period>("thisweek");
-  const [activeReport, setActiveReport] = useState<ReportType | null>(null);
+  const [reportPeriod, setReportPeriod] = useState("thisweek");
+  const [showExportDialog, setShowExportDialog] = useState(false);
 
-  const handleCloseModal = useCallback(() => {
-    setActiveReport(null);
-  }, []);
+  // Mock Data - Expanded & More Realistic
+  const summary = {
+    totalSales: 124850,
+    totalTransactions: 87,
+    averageOrder: 1435,
+    growthRate: 12.4,
+    topProduct: "Coca-Cola 1.5L",
+    lowStockItems: 5,
+    inventoryValue: 248750,
+  };
 
-  const ActiveModalComponent = activeReport
-    ? REPORT_MODALS[activeReport]
-    : null;
+  const salesTrendData: SalesTrendData[] = [
+    { day: "Mon", sales: 12400, transactions: 18, growth: 8 },
+    { day: "Tue", sales: 15600, transactions: 22, growth: 14 },
+    { day: "Wed", sales: 9800, transactions: 15, growth: -12 },
+    { day: "Thu", sales: 18900, transactions: 28, growth: 22 },
+    { day: "Fri", sales: 22400, transactions: 31, growth: 18 },
+    { day: "Sat", sales: 27800, transactions: 42, growth: 35 },
+    { day: "Sun", sales: 18200, transactions: 26, growth: -8 },
+  ];
+
+  const topProductsData = [
+    { name: "Coca-Cola 1.5L", sales: 12450, units: 245, category: "Beverages" },
+    { name: "Potato Chips", sales: 8750, units: 180, category: "Snacks" },
+    { name: "White Bread", sales: 6320, units: 95, category: "Bakery" },
+    { name: "Mineral Water", sales: 4250, units: 310, category: "Beverages" },
+    { name: "Eggs Tray", sales: 3150, units: 42, category: "Dairy" },
+  ];
+
+  const paymentData = [
+    { name: "Cash", value: 45, color: "#20B757", amount: 56182 },
+    { name: "GCash", value: 32, color: "#22C55E", amount: 39952 },
+    { name: "Card", value: 18, color: "#4ADE80", amount: 22473 },
+    { name: "Maya", value: 5, color: "#86EFAC", amount: 6242 },
+  ];
+
+  const recentTransactions = [
+    {
+      id: "TRX-8921",
+      time: "14:32",
+      customer: "Juan Dela Cruz",
+      amount: 2450,
+      method: "GCash",
+      items: 4,
+    },
+    {
+      id: "TRX-8920",
+      time: "14:18",
+      customer: "Maria Santos",
+      amount: 875,
+      method: "Cash",
+      items: 2,
+    },
+    {
+      id: "TRX-8919",
+      time: "13:55",
+      customer: "Walk-in",
+      amount: 3290,
+      method: "Card",
+      items: 7,
+    },
+    {
+      id: "TRX-8918",
+      time: "13:40",
+      customer: "Ana Reyes",
+      amount: 1560,
+      method: "GCash",
+      items: 3,
+    },
+  ];
+
+  const lowStockItems = [
+    { name: "Eggs Tray (Large)", stock: 8, threshold: 20 },
+    { name: "Fresh Milk 1L", stock: 12, threshold: 25 },
+    { name: "Lucky Me Noodles", stock: 15, threshold: 40 },
+    { name: "Bread Loaf", stock: 9, threshold: 18 },
+    { name: "Cigarettes (Marlboro)", stock: 22, threshold: 50 },
+  ];
+
+  const totalSalesThisPeriod = salesTrendData.reduce(
+    (sum, day) => sum + day.sales,
+    0,
+  );
 
   return (
-    <div className="flex-1 overflow-auto bg-zinc-50/80">
-      <div className="max-w-7xl mx-auto p-6 lg:p-8">
+    <div className="flex-1 overflow-auto bg-zinc-50 p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
+            <h1 className="text-4xl font-bold tracking-tight text-zinc-900">
               Reports
             </h1>
-            <p className="text-zinc-500 mt-1">
-              Business insights and performance overview
+            <p className="text-zinc-600 mt-1 text-lg">
+              Real-time business performance and insights
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <Select
-              value={reportPeriod}
-              onValueChange={(v) => setReportPeriod(v as Period)}
-            >
-              <SelectTrigger className="w-44 bg-white border-zinc-200">
-                <SelectValue />
+            <Select value={reportPeriod} onValueChange={setReportPeriod}>
+              <SelectTrigger className="w-52">
+                <SelectValue placeholder="Select period" />
               </SelectTrigger>
               <SelectContent>
-                {PERIODS.map((period) => (
-                  <SelectItem key={period.value} value={period.value}>
-                    {period.label}
-                  </SelectItem>
-                ))}
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="yesterday">Yesterday</SelectItem>
+                <SelectItem value="thisweek">This Week</SelectItem>
+                <SelectItem value="thismonth">This Month</SelectItem>
+                <SelectItem value="lastmonth">Last Month</SelectItem>
+                <SelectItem value="custom">Custom Range</SelectItem>
               </SelectContent>
             </Select>
 
-            <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
-              <Download size={16} />
-              Export
-            </Button>
+            <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
+              <DialogTrigger asChild>
+                <Button
+                  style={{ backgroundColor: PRIMARY_COLOR }}
+                  className="gap-2 hover:brightness-105 transition"
+                >
+                  <Download size={18} />
+                  Export Report
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Export Reports</DialogTitle>
+                  <DialogDescription>
+                    Choose format and sections to include in your export.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4 space-y-4">
+                  <p className="text-sm text-zinc-500">
+                    Export options coming soon...
+                  </p>
+                  <Button
+                    className="w-full"
+                    style={{ backgroundColor: PRIMARY_COLOR }}
+                  >
+                    Download as PDF
+                  </Button>
+                  <Button variant="outline" className="w-full">
+                    Download as Excel
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
-          <MetricCard
-            label="Total Sales"
-            value={<Currency amount={SUMMARY.totalSales} />}
-            icon={DollarSign}
-            trend="up"
-            trendValue="+12.4% from last period"
-            color="emerald"
-          />
-          <MetricCard
-            label="Transactions"
-            value={SUMMARY.totalTransactions}
-            icon={Users}
-            trend="neutral"
-            trendValue={`Avg ₱${SUMMARY.averageOrder.toLocaleString()} / order`}
-            color="zinc"
-          />
-          <MetricCard
-            label="Low Stock Items"
-            value={
-              <span className="text-amber-600">{SUMMARY.lowStockItems}</span>
-            }
-            icon={Package}
-            color="amber"
-          />
-          <Card className="overflow-hidden border-zinc-200/60 shadow-sm hover:shadow-md transition-shadow duration-300">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-zinc-500">
-                    Top Product
-                  </p>
-                  <p className="text-lg font-semibold text-zinc-900 mt-2 leading-tight">
-                    {SUMMARY.topProduct}
-                  </p>
-                </div>
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="border-emerald-100">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-zinc-600">
+                Total Sales
+              </CardTitle>
+              <DollarSign className="text-emerald-600" size={24} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold">
+                ₱{summary.totalSales.toLocaleString()}
               </div>
-              <Badge
-                variant="secondary"
-                className="mt-4 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-0"
-              >
-                Best Seller
-              </Badge>
+              <div className="flex items-center gap-1 text-emerald-600 text-sm mt-2">
+                <TrendingUp size={16} />
+                <span>+{summary.growthRate}% from last period</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-zinc-600">
+                Transactions
+              </CardTitle>
+              <Users className="text-emerald-600" size={24} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold">
+                {summary.totalTransactions}
+              </div>
+              <p className="text-sm text-zinc-500 mt-2">
+                Avg ₱{summary.averageOrder.toLocaleString()} per order
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-zinc-600">
+                Low Stock Alert
+              </CardTitle>
+              <Package className="text-amber-600" size={24} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold text-amber-600">
+                {summary.lowStockItems}
+              </div>
+              <p className="text-sm text-amber-600 mt-2">
+                Items need restocking
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-zinc-600">
+                Inventory Value
+              </CardTitle>
+              <DollarSign className="text-zinc-600" size={24} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold">
+                ₱{summary.inventoryValue.toLocaleString()}
+              </div>
+              <p className="text-xs text-zinc-500 mt-2">Updated today</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Charts */}
-        <SalesTrendChart data={SALES_TREND_DATA} period={reportPeriod} />
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mt-6 mb-8">
-          <TopProductsChart data={TOP_PRODUCTS_DATA} />
-          <PaymentMethodsChart data={PAYMENT_DATA} />
-        </div>
-
-        <Separator className="my-10 bg-zinc-200/60" />
-
-        {/* Detailed Reports Section */}
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold tracking-tight text-zinc-900">
-            Detailed Reports
-          </h2>
-          <p className="text-zinc-500 mt-1">
-            Generate comprehensive reports for deeper analysis
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
-          {REPORT_CARDS.map((report) => (
-            <Card
-              key={report.type}
-              className="group cursor-pointer border-zinc-200/60 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-              onClick={() => setActiveReport(report.type)}
-            >
-              <CardContent className="p-6 lg:p-8">
-                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                  {report.icon}
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+          {/* Sales Trend - Full width on large screens */}
+          <Card className="xl:col-span-8">
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle>Sales Trend</CardTitle>
+                  <CardDescription>Daily performance this week</CardDescription>
                 </div>
-                <h3 className="font-semibold text-xl text-zinc-900 mb-2">
-                  {report.title}
-                </h3>
-                <p className="text-zinc-500 text-sm leading-relaxed mb-6">
-                  {report.description}
+                <Badge variant="secondary">+12.4% WoW</Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={340}>
+                <LineChart data={salesTrendData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="day" />
+                  <YAxis />
+                  <Tooltip
+                    formatter={(value: any) => [
+                      `₱${Number(value ?? 0).toLocaleString()}`,
+                      "Sales",
+                    ]}
+                  />
+                  <Line
+                    type="natural"
+                    dataKey="sales"
+                    stroke={PRIMARY_COLOR}
+                    strokeWidth={4}
+                    dot={{ fill: PRIMARY_COLOR, r: 5 }}
+                    activeDot={{ r: 7 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Top Products */}
+          <Card className="xl:col-span-4">
+            <CardHeader>
+              <CardTitle>Top Selling Products</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={340}>
+                <BarChart data={topProductsData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" />
+                  <YAxis type="category" dataKey="name" width={110} />
+                  <Tooltip
+                    formatter={(value: any) => [
+                      `₱${Number(value ?? 0).toLocaleString()}`,
+                      "Sales",
+                    ]}
+                  />
+                  <Bar dataKey="sales" fill={PRIMARY_COLOR} radius={6} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Payment Methods */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Payment Methods Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center">
+              <div className="w-full max-w-[320px]">
+                <ResponsiveContainer width="100%" height={280}>
+                  <PieChart>
+                    <Pie
+                      data={paymentData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={75}
+                      outerRadius={115}
+                      dataKey="value"
+                      labelLine={false}
+                    >
+                      {paymentData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value: any) => [
+                        `${Number(value ?? 0).toLocaleString()}%`,
+                      ]}
+                    />
+                    <Legend verticalAlign="bottom" />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recent Transactions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Transactions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Method</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recentTransactions.map((tx) => (
+                    <TableRow key={tx.id}>
+                      <TableCell className="font-mono text-xs">
+                        {tx.id}
+                      </TableCell>
+                      <TableCell>{tx.time}</TableCell>
+                      <TableCell className="font-medium">
+                        {tx.customer}
+                      </TableCell>
+                      <TableCell>₱{tx.amount.toLocaleString()}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{tx.method}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <Button
+                variant="link"
+                className="mt-4 w-full text-primary"
+                onClick={() => {
+                  window.location.href = "/transactions/history";
+                }}
+              >
+                View All Transactions →
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Inventory & Customer Insights */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Low Stock Items */}
+          <Card className="lg:col-span-7">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                Low Stock Items{" "}
+                <Badge variant="destructive">{lowStockItems.length}</Badge>
+              </CardTitle>
+              <CardDescription>Items below safety threshold</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {lowStockItems.map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center border-b pb-4 last:border-0 last:pb-0"
+                  >
+                    <div>
+                      <p className="font-medium">{item.name}</p>
+                      <p className="text-sm text-zinc-500">
+                        Current: {item.stock} • Threshold: {item.threshold}
+                      </p>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className="text-amber-600 border-amber-200"
+                    >
+                      Restock Soon
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Customer Insights */}
+          <Card className="lg:col-span-5">
+            <CardHeader>
+              <CardTitle>Customer Insights</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-zinc-50 rounded-xl p-5 text-center">
+                  <div className="text-5xl font-bold text-emerald-600">42</div>
+                  <p className="text-sm text-zinc-600 mt-1">Loyal Customers</p>
+                  <div className="flex items-center justify-center gap-1 text-emerald-600 text-xs mt-3">
+                    <ArrowUpRight size={14} /> +3 this week
+                  </div>
+                </div>
+                <div className="bg-zinc-50 rounded-xl p-5 text-center">
+                  <div className="text-5xl font-bold">18</div>
+                  <p className="text-sm text-zinc-600 mt-1">VIP Members</p>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div>
+                <p className="text-sm font-medium mb-3">
+                  Top Customer Segments
                 </p>
-                <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
-                  Generate Report
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span>Regular Walk-ins</span>
+                    <span className="font-medium">54%</span>
+                  </div>
+                  <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
+                    <div className="h-2 w-[54%] bg-primary rounded-full"></div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
-
-      {/* Report Modal */}
-      <Dialog open={!!activeReport} onOpenChange={handleCloseModal}>
-        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-auto p-0 gap-0">
-          <DialogHeader className="px-6 pt-6 pb-2">
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-xl font-bold text-zinc-900">
-                {activeReport ? REPORT_TITLES[activeReport] : ""}
-              </DialogTitle>
-              <DialogClose asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-full h-8 w-8"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </DialogClose>
-            </div>
-          </DialogHeader>
-          <div className="px-6 pb-6">
-            {ActiveModalComponent && <ActiveModalComponent />}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
