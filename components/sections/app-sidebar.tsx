@@ -4,14 +4,17 @@ import * as React from "react";
 import {
   BookOpen,
   Bot,
-  Command,
+  ClipboardList,
   Frame,
   LifeBuoy,
   Map,
   PieChart,
   Send,
   Settings2,
+  ShelvingUnit,
   SquareTerminal,
+  UserRoundPlus,
+  Wallet,
 } from "lucide-react";
 
 import {
@@ -27,6 +30,8 @@ import { NavMain } from "./nav-main";
 import { NavProjects } from "./nav-projects";
 import { NavSecondary } from "./nav-secondary";
 import { NavUser } from "./nav-user";
+import Image from "next/image";
+import { BrandName, SidebarLogoPath } from "@/lib/banding/brand";
 
 const data = {
   user: {
@@ -36,118 +41,69 @@ const data = {
   },
   navMain: [
     {
-      title: "Playground",
+      title: "Dashboard",
       url: "#",
       icon: SquareTerminal,
-      isActive: true,
+    },
+    {
+      title: "Transactions",
+      url: "/transactions",
+      icon: Wallet,
       items: [
         {
-          title: "History",
-          url: "#",
+          title: "New Transaction",
+          url: "/transactions/new",
         },
         {
-          title: "Starred",
-          url: "#",
+          title: "Transaction History",
+          url: "/transactions/history",
         },
         {
-          title: "Settings",
-          url: "#",
+          title: "Track Status",
+          url: "/transactions/status",
         },
       ],
     },
     {
-      title: "Models",
-      url: "#",
-      icon: Bot,
+      title: "Customers",
+      url: "/customers",
+      icon: UserRoundPlus,
+    },
+    {
+      title: "Inventory",
+      url: "/inventory",
+      icon: ShelvingUnit,
       items: [
         {
-          title: "Genesis",
-          url: "#",
+          title: "Low Stock Alerts",
+          url: "/inventory/low-stock",
         },
         {
-          title: "Explorer",
-          url: "#",
+          title: "Manage Inventory",
+          url: "/inventory/manage",
         },
         {
-          title: "Quantum",
-          url: "#",
+          title: "Stock Movements",
+          url: "/inventory/movements",
         },
       ],
     },
     {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
+      title: "Reports",
+      url: "/reports",
+      icon: ClipboardList,
     },
   ],
   navSecondary: [
     {
-      title: "Support",
+      title: "Settings",
       url: "#",
-      icon: LifeBuoy,
+      icon: Settings2,
     },
     {
-      title: "Feedback",
+      title: "Report Bug",
       url: "#",
       icon: Send,
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
     },
   ],
 };
@@ -160,12 +116,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <a href="#">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Command className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">Acme Inc</span>
-                  <span className="truncate text-xs">Enterprise</span>
+                <div className="relative w-full h-full">
+                  <Image
+                    src={SidebarLogoPath}
+                    alt={`${BrandName} Logo`}
+                    fill
+                    className="object-contain rounded-lg"
+                    priority
+                  />
                 </div>
               </a>
             </SidebarMenuButton>
@@ -174,7 +132,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
